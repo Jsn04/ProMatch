@@ -1,0 +1,13 @@
+# python
+__pycache__/
+*.pyc
+
+# node
+node_modules/
+dist/
+
+# env / secrets
+.env
+
+# mac
+.DS_Store

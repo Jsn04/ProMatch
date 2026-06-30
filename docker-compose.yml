@@ -1,0 +1,38 @@
+# This file starts all three parts of the project together with one command:
+#   docker compose up
+# It also puts them on my own custom network so they can find each other.
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: promatch
+      POSTGRES_PASSWORD: promatch
+      POSTGRES_DB: promatch
+    ports:
+      - "5432:5432"
+    networks:
+      - promatch-net
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - promatch-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - promatch-net
+
+# my own network instead of the default one (the brief asks for a custom network)
+networks:
+  promatch-net:
+    driver: bridge
