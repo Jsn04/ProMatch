@@ -8,9 +8,11 @@ players, and some info about the attributes (which the form will use later).
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from seed_data import seed
 from database import get_connection
+from recommender import recommend, ATTRIBUTES
 
 app = FastAPI()
 
@@ -22,10 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# the six attributes I match players on
-ATTRIBUTES = ["pace", "shooting", "passing", "dribbling", "defending", "physical"]
-
 
 @app.on_event("startup")
 def startup():
@@ -83,3 +81,29 @@ def get_meta():
         "min_value": 0,
         "max_value": 99,
     }
+
+
+# the shape of the data the frontend sends when asking for matches
+class MatchRequest(BaseModel):
+    pace: int
+    shooting: int
+    passing: int
+    dribbling: int
+    defending: int
+    physical: int
+    method: str = "euclidean"
+    top_n: int = 10
+
+
+@app.post("/recommend")
+def recommend_players(request: MatchRequest):
+    """Take the user's six attributes and return the most similar players."""
+    user = {
+        "pace": request.pace,
+        "shooting": request.shooting,
+        "passing": request.passing,
+        "dribbling": request.dribbling,
+        "defending": request.defending,
+        "physical": request.physical,
+    }
+    return recommend(user, method=request.method, top_n=request.top_n)
