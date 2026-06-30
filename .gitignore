@@ -6,8 +6,18 @@ __pycache__/
 node_modules/
 dist/
 
+# python virtual environment
+.venv/
+
+# raw dataset (too big, 13MB). the cleaned players.csv is committed instead.
+# download link is in the README.
+data/players_22_full.csv
+
 # env / secrets
 .env
 
 # mac
 .DS_Store
+
+# my personal build notes (keep private for now)
+ProMatch_Build_Log.md
