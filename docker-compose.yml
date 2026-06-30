@@ -21,6 +21,12 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    # the backend needs the same database settings so it can connect to the db container
+    environment:
+      DB_HOST: db
+      POSTGRES_USER: ${POSTGRES_USER:-promatch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localdev}
+      POSTGRES_DB: ${POSTGRES_DB:-promatch}
     depends_on:
       - db
     networks:
