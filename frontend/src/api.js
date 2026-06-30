@@ -8,3 +8,19 @@ export async function checkHealth() {
   const res = await fetch(`${API_URL}/health`);
   return res.json();
 }
+
+// gets the list of attributes (used to build the form)
+export async function getMeta() {
+  const res = await fetch(`${API_URL}/meta`);
+  return res.json();
+}
+
+// sends the user's attributes and gets back the matching players
+export async function getRecommendations(values, method) {
+  const res = await fetch(`${API_URL}/recommend`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...values, method: method, top_n: 10 }),
+  });
+  return res.json();
+}
