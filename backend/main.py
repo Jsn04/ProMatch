@@ -9,6 +9,8 @@ The matching logic and the database stuff come in the later steps.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from seed_data import seed
+
 app = FastAPI()
 
 # The frontend runs on a different port, so the browser blocks the request
@@ -19,6 +21,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def startup():
+    # when the backend starts, make sure the player data is loaded into the database
+    seed()
 
 
 @app.get("/health")

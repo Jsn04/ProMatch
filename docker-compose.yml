@@ -27,6 +27,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-promatch}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localdev}
       POSTGRES_DB: ${POSTGRES_DB:-promatch}
+    # share the data folder into the container so the backend can read players.csv
+    volumes:
+      - ./data:/app/data
     depends_on:
       - db
     networks:
