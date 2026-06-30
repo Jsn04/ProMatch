@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getMeta, getRecommendations } from "./api";
+import "./styles.css";
 
 function App() {
   const [attributes, setAttributes] = useState([]);
@@ -34,17 +35,16 @@ function App() {
   }
 
   return (
-    <div style={{ fontFamily: "sans-serif", padding: 40, maxWidth: 700, margin: "0 auto" }}>
+    <div className="page">
       <h1>ProMatch</h1>
-      <p>Enter your attributes and find the players most similar to you.</p>
+      <p className="subtitle">Enter your attributes and find the players most similar to you.</p>
 
       {/* one slider for each attribute */}
       {attributes.map((attribute) => (
-        <div key={attribute} style={{ marginBottom: 12 }}>
+        <div className="attribute" key={attribute}>
           <label>
             {attribute}: {values[attribute]}
           </label>
-          <br />
           <input
             type="range"
             min="0"
@@ -55,30 +55,29 @@ function App() {
         </div>
       ))}
 
-      {/* choose how to match */}
-      <div style={{ marginTop: 10 }}>
+      {/* choose how to match, and search */}
+      <div className="controls">
         <label>Match by: </label>
         <select value={method} onChange={(e) => setMethod(e.target.value)}>
           <option value="euclidean">Overall similarity</option>
           <option value="cosine">Playing style</option>
         </select>
+        <button onClick={handleSubmit}>Find matches</button>
       </div>
-
-      <button onClick={handleSubmit} style={{ marginTop: 20, padding: "8px 16px" }}>
-        Find matches
-      </button>
 
       {/* the results */}
       {loading && <p>Finding matches...</p>}
 
       {results.length > 0 && (
-        <div style={{ marginTop: 30 }}>
+        <div>
           <h2>Your matches</h2>
           {results.map((player, index) => (
-            <div key={index} style={{ borderBottom: "1px solid #ccc", padding: "8px 0" }}>
-              <strong>{player.name}</strong> ({player.match_percent}% match)
-              <br />
-              {player.club} — {player.positions}
+            <div className="player-card" key={index}>
+              <span className="name">{player.name}</span>{" "}
+              <span className="percent">{player.match_percent}% match</span>
+              <div className="info">
+                {player.club} — {player.positions}
+              </div>
             </div>
           ))}
         </div>
