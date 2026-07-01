@@ -3,7 +3,8 @@ The matching logic for the backend.
 
 This is the same idea as my similarity notebook, but instead of reading a csv it loads
 the players from the database. It uses scikit-learn's k-NN to find the players most
-similar to the attributes the user sends in.
+similar to the attributes the user sends in. It can also filter the players by position
+and age before matching.
 """
 
 import numpy as np
@@ -15,34 +16,60 @@ from database import get_connection
 ATTRIBUTES = ["pace", "shooting", "passing", "dribbling", "defending", "physical"]
 
 
-def load_players():
-    """Read all the players from the database."""
+def load_players(position=None, min_age=None, max_age=None):
+    """Read players from the database, with optional filters for position and age."""
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute(
+
+    query = (
         "SELECT name, club, nationality, age, overall, positions, "
         "pace, shooting, passing, dribbling, defending, physical FROM players"
     )
+
+    # only add the filters that were actually given
+    conditions = []
+    params = []
+    if position:
+        conditions.append("positions LIKE %s")
+        params.append("%" + position + "%")
+    if min_age is not None:
+        conditions.append("age >= %s")
+        params.append(min_age)
+    if max_age is not None:
+        conditions.append("age <= %s")
+        params.append(max_age)
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    cur.execute(query, params)
     rows = cur.fetchall()
     cur.close()
     conn.close()
     return rows
 
 
-def recommend(user, method="euclidean", weights=None, top_n=10):
-    """Return the players most similar to the user's attributes."""
+def recommend(user, method="euclidean", weights=None, top_n=10,
+              position=None, min_age=None, max_age=None):
+    """Return the players most similar to the user's attributes (after any filters)."""
     if weights is None:
         weights = {a: 1 for a in ATTRIBUTES}
     weight_vector = np.array([weights[a] for a in ATTRIBUTES])
 
-    rows = load_players()
+    rows = load_players(position, min_age, max_age)
+
+    # if the filters left no players there is nothing to match
+    if len(rows) == 0:
+        return []
+
+    # cannot ask for more neighbours than the number of players we have
+    n = min(top_n, len(rows))
 
     # the six attribute values are the last six columns of each row
     attribute_matrix = np.array([row[-6:] for row in rows], dtype=float) * weight_vector
     user_point = np.array([user[a] for a in ATTRIBUTES], dtype=float) * weight_vector
 
-    # find the nearest players with k-NN
-    knn = NearestNeighbors(n_neighbors=top_n, metric=method)
+    knn = NearestNeighbors(n_neighbors=n, metric=method)
     knn.fit(attribute_matrix)
     distances, indices = knn.kneighbors([user_point])
 
@@ -55,7 +82,7 @@ def recommend(user, method="euclidean", weights=None, top_n=10):
 
     # build the list of matched players to send back
     matches = []
-    for position, row_index in enumerate(indices[0]):
+    for place, row_index in enumerate(indices[0]):
         row = rows[row_index]
         matches.append({
             "name": row[0],
@@ -70,6 +97,6 @@ def recommend(user, method="euclidean", weights=None, top_n=10):
             "dribbling": row[9],
             "defending": row[10],
             "physical": row[11],
-            "match_percent": round(float(scores[position]), 1),
+            "match_percent": round(float(scores[place]), 1),
         })
     return matches

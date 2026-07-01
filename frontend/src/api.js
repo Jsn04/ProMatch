@@ -15,12 +15,12 @@ export async function getMeta() {
   return res.json();
 }
 
-// sends the user's attributes and gets back the matching players
-export async function getRecommendations(values, method) {
+// sends the user's attributes plus the filters and gets back the matching players
+export async function getRecommendations(values, method, filters) {
   const res = await fetch(`${API_URL}/recommend`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...values, method: method, top_n: 10 }),
+    body: JSON.stringify({ ...values, method: method, top_n: 10, ...filters }),
   });
   return res.json();
 }

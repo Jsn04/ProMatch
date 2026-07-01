@@ -2,11 +2,18 @@ import { useEffect, useState } from "react";
 import { getMeta, getRecommendations } from "./api";
 import "./styles.css";
 
+// the positions I let the user filter by
+const POSITIONS = ["ST", "CF", "LW", "RW", "CAM", "CM", "CDM", "LM", "RM", "CB", "LB", "RB"];
+
 function App() {
   const [attributes, setAttributes] = useState([]);
   const [values, setValues] = useState({});
   const [method, setMethod] = useState("euclidean");
+  const [position, setPosition] = useState("");
+  const [minAge, setMinAge] = useState(15);
+  const [maxAge, setMaxAge] = useState(45);
   const [results, setResults] = useState([]);
+  const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // when the page loads, get the attributes from the backend and start each one at 50
@@ -26,11 +33,13 @@ function App() {
     setValues({ ...values, [attribute]: Number(newValue) });
   }
 
-  // send the values to the backend and show the matches
+  // send the values and filters to the backend and show the matches
   async function handleSubmit() {
     setLoading(true);
-    const matches = await getRecommendations(values, method);
+    const filters = { position: position, min_age: minAge, max_age: maxAge };
+    const matches = await getRecommendations(values, method, filters);
     setResults(matches);
+    setSearched(true);
     setLoading(false);
   }
 
@@ -59,6 +68,29 @@ function App() {
           </div>
         ))}
 
+        {/* filters */}
+        <div className="filters">
+          <label>
+            Position:
+            <select value={position} onChange={(e) => setPosition(e.target.value)}>
+              <option value="">Any</option>
+              {POSITIONS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Min age:
+            <input type="number" value={minAge} onChange={(e) => setMinAge(Number(e.target.value))} />
+          </label>
+          <label>
+            Max age:
+            <input type="number" value={maxAge} onChange={(e) => setMaxAge(Number(e.target.value))} />
+          </label>
+        </div>
+
         <div className="controls">
           <label>Match by:</label>
           <select value={method} onChange={(e) => setMethod(e.target.value)}>
@@ -71,6 +103,11 @@ function App() {
 
       {loading && <p>Finding matches...</p>}
 
+      {/* message when the filters return nothing */}
+      {searched && !loading && results.length === 0 && (
+        <p>No players found for these filters.</p>
+      )}
+
       {results.length > 0 && (
         <div className="results">
           <h2>Your matches</h2>
@@ -80,7 +117,7 @@ function App() {
               <div className="player-main">
                 <div className="name">{player.name}</div>
                 <div className="info">
-                  {player.club} · {player.positions}
+                  {player.club} · {player.positions} · age {player.age}
                 </div>
                 <div className="stats">
                   PAC {player.pace} · SHO {player.shooting} · PAS {player.passing} · DRI{" "}

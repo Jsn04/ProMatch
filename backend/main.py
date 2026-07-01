@@ -93,11 +93,15 @@ class MatchRequest(BaseModel):
     physical: int
     method: str = "euclidean"
     top_n: int = 10
+    # optional filters
+    position: str | None = None
+    min_age: int | None = None
+    max_age: int | None = None
 
 
 @app.post("/recommend")
 def recommend_players(request: MatchRequest):
-    """Take the user's six attributes and return the most similar players."""
+    """Take the user's six attributes (and any filters) and return the most similar players."""
     user = {
         "pace": request.pace,
         "shooting": request.shooting,
@@ -106,4 +110,11 @@ def recommend_players(request: MatchRequest):
         "defending": request.defending,
         "physical": request.physical,
     }
-    return recommend(user, method=request.method, top_n=request.top_n)
+    return recommend(
+        user,
+        method=request.method,
+        top_n=request.top_n,
+        position=request.position,
+        min_age=request.min_age,
+        max_age=request.max_age,
+    )
