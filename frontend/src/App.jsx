@@ -36,47 +36,62 @@ function App() {
 
   return (
     <div className="page">
-      <h1>ProMatch</h1>
-      <p className="subtitle">Enter your attributes and find the players most similar to you.</p>
-
-      {/* one slider for each attribute */}
-      {attributes.map((attribute) => (
-        <div className="attribute" key={attribute}>
-          <label>
-            {attribute}: {values[attribute]}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="99"
-            value={values[attribute] || 0}
-            onChange={(e) => handleChange(attribute, e.target.value)}
-          />
-        </div>
-      ))}
-
-      {/* choose how to match, and search */}
-      <div className="controls">
-        <label>Match by: </label>
-        <select value={method} onChange={(e) => setMethod(e.target.value)}>
-          <option value="euclidean">Overall similarity</option>
-          <option value="cosine">Playing style</option>
-        </select>
-        <button onClick={handleSubmit}>Find matches</button>
+      <div className="header">
+        <h1>ProMatch</h1>
+        <p className="subtitle">Enter your attributes and find the players most similar to you.</p>
       </div>
 
-      {/* the results */}
+      {/* the form is inside a card */}
+      <div className="card form-card">
+        {attributes.map((attribute) => (
+          <div className="attribute" key={attribute}>
+            <label>
+              <span>{attribute}</span>
+              <span className="value">{values[attribute]}</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="99"
+              value={values[attribute] || 0}
+              onChange={(e) => handleChange(attribute, e.target.value)}
+            />
+          </div>
+        ))}
+
+        <div className="controls">
+          <label>Match by:</label>
+          <select value={method} onChange={(e) => setMethod(e.target.value)}>
+            <option value="euclidean">Overall similarity</option>
+            <option value="cosine">Playing style</option>
+          </select>
+          <button onClick={handleSubmit}>Find matches</button>
+        </div>
+      </div>
+
       {loading && <p>Finding matches...</p>}
 
       {results.length > 0 && (
-        <div>
+        <div className="results">
           <h2>Your matches</h2>
           {results.map((player, index) => (
             <div className="player-card" key={index}>
-              <span className="name">{player.name}</span>{" "}
-              <span className="percent">{player.match_percent}% match</span>
-              <div className="info">
-                {player.club} — {player.positions}
+              <div className="rank">{index + 1}</div>
+              <div className="player-main">
+                <div className="name">{player.name}</div>
+                <div className="info">
+                  {player.club} · {player.positions}
+                </div>
+                <div className="stats">
+                  PAC {player.pace} · SHO {player.shooting} · PAS {player.passing} · DRI{" "}
+                  {player.dribbling} · DEF {player.defending} · PHY {player.physical}
+                </div>
+              </div>
+              <div className="match">
+                <div className="percent">{player.match_percent}%</div>
+                <div className="bar">
+                  <div className="bar-fill" style={{ width: `${player.match_percent}%` }}></div>
+                </div>
               </div>
             </div>
           ))}
