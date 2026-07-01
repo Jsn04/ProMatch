@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import { getMeta, getRecommendations } from "./api";
 import "./styles.css";
 
-// the positions I let the user filter by
-const POSITIONS = ["ST", "CF", "LW", "RW", "CAM", "CM", "CDM", "LM", "RM", "CB", "LB", "RB"];
+// the position groups I let the user filter by (the backend maps these to real positions)
+const POSITION_GROUPS = [
+  { value: "attacker", label: "Attackers" },
+  { value: "midfielder", label: "Midfielders" },
+  { value: "defender", label: "Defenders" },
+];
 
 function App() {
   const [attributes, setAttributes] = useState([]);
@@ -74,9 +78,9 @@ function App() {
             Position:
             <select value={position} onChange={(e) => setPosition(e.target.value)}>
               <option value="">Any</option>
-              {POSITIONS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
+              {POSITION_GROUPS.map((group) => (
+                <option key={group.value} value={group.value}>
+                  {group.label}
                 </option>
               ))}
             </select>

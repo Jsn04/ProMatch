@@ -15,6 +15,13 @@ from database import get_connection
 # the six attributes I match on (same order everywhere)
 ATTRIBUTES = ["pace", "shooting", "passing", "dribbling", "defending", "physical"]
 
+# the frontend sends a simple group name, and I map it to the real position codes here
+POSITION_GROUPS = {
+    "attacker": ["ST", "CF", "LW", "RW"],
+    "midfielder": ["CAM", "CM", "CDM", "LM", "RM"],
+    "defender": ["CB", "LB", "RB", "LWB", "RWB"],
+}
+
 
 def load_players(position=None, min_age=None, max_age=None):
     """Read players from the database, with optional filters for position and age."""
@@ -29,9 +36,14 @@ def load_players(position=None, min_age=None, max_age=None):
     # only add the filters that were actually given
     conditions = []
     params = []
-    if position:
-        conditions.append("positions LIKE %s")
-        params.append("%" + position + "%")
+    if position and position in POSITION_GROUPS:
+        # a group can be several positions, so match any of them
+        codes = POSITION_GROUPS[position]
+        or_parts = []
+        for code in codes:
+            or_parts.append("positions LIKE %s")
+            params.append("%" + code + "%")
+        conditions.append("(" + " OR ".join(or_parts) + ")")
     if min_age is not None:
         conditions.append("age >= %s")
         params.append(min_age)
